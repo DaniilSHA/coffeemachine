@@ -1,10 +1,13 @@
 package com.example.coffeemachine.controllers;
 
+import com.example.coffeemachine.business_logic.CoffeeMachineRealLogicEmulator;
 import com.example.coffeemachine.domain.CoffeeMachine;
 import com.example.coffeemachine.domain.StateCoffeeMachine;
 import com.example.coffeemachine.dto.AddCoffeeMachineRequest;
+import com.example.coffeemachine.dto.getCoffeeMachineResponce;
 import com.example.coffeemachine.servicies.CoffeeMachineService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -17,10 +20,13 @@ import org.springframework.web.bind.annotation.*;
 public class CoffeeMachineController {
 
     CoffeeMachineService coffeeMachineService;
+    CoffeeMachineRealLogicEmulator coffeeMachineRealLogicEmulator;
 
     @Autowired
-    public CoffeeMachineController(CoffeeMachineService coffeeMachineService) {
+    public CoffeeMachineController(CoffeeMachineService coffeeMachineService,
+                                   CoffeeMachineRealLogicEmulator coffeeMachineRealLogicEmulator) {
         this.coffeeMachineService = coffeeMachineService;
+        this.coffeeMachineRealLogicEmulator = coffeeMachineRealLogicEmulator;
     }
 
     @Operation(
@@ -65,11 +71,38 @@ public class CoffeeMachineController {
             }, defaultValue = "TURNED_OFF")
             @RequestParam(name = "status") String status) {
         StateCoffeeMachine state = validateStateParam(status);
+        switch (state) {
+            case TURNED_ON: coffeeMachineRealLogicEmulator.turnOn(coffeeMachineId);
+            case MAKES_AMERICANO: coffeeMachineRealLogicEmulator.setStatusCoffeeMachine(StateCoffeeMachine.MAKES_AMERICANO);
+            case MAKES_CAPPUCCINO: coffeeMachineRealLogicEmulator.setStatusCoffeeMachine(StateCoffeeMachine.MAKES_CAPPUCCINO);
+            case MAKES_LATTE: coffeeMachineRealLogicEmulator.setStatusCoffeeMachine(StateCoffeeMachine.MAKES_LATTE);
+            case TURNED_OFF: coffeeMachineRealLogicEmulator.turnOff();
+        }
+    }
+
+    @Operation(
+            summary = "get coffee machine",
+            description = "get specified coffee machine"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    description = "OK",
+                    responseCode = "200",
+                    content = @Content(mediaType = "application/json",
+                                        schema = @Schema(implementation = getCoffeeMachineResponce.class))),
+            @ApiResponse(description = "Internal server error", responseCode = "500")
+    })
+    @GetMapping("/{coffeeMachineId}")
+    @ResponseStatus(HttpStatus.OK)
+    public getCoffeeMachineResponce getCoffeeMachine(@PathVariable("coffeeMachineId") long coffeeMachineId) {
         CoffeeMachine coffeeMachine = coffeeMachineService
                 .findById(coffeeMachineId)
                 .orElseThrow(() -> new RuntimeException("coffee machine not found"));
-        coffeeMachine.setState(state);
-        coffeeMachineService.saveOrUpdateCoffeeMachine(coffeeMachine);
+        return new getCoffeeMachineResponce (
+                coffeeMachine.getId(),
+                coffeeMachine.getState(),
+                coffeeMachine.getModel()
+        );
     }
 
     @ExceptionHandler(Exception.class)
