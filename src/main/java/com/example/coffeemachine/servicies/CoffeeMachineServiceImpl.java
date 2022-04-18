@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 @Service
 public class CoffeeMachineServiceImpl implements CoffeeMachineService {
@@ -19,7 +20,12 @@ public class CoffeeMachineServiceImpl implements CoffeeMachineService {
 
     @Transactional
     @Override
-    public void addCoffeeMachine(CoffeeMachine coffeeMachine) {
+    public void saveOrUpdateCoffeeMachine(CoffeeMachine coffeeMachine) {
         coffeeMachineRepository.saveAndFlush(coffeeMachine);
+    }
+
+    @Override
+    public Optional<CoffeeMachine> findById(long coffeeMachineId) {
+        return coffeeMachineRepository.findById(coffeeMachineId);
     }
 }
