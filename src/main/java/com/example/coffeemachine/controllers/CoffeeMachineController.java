@@ -5,7 +5,8 @@ import com.example.coffeemachine.business_logic.CoffeeMachineUtil;
 import com.example.coffeemachine.domain.CoffeeMachine;
 import com.example.coffeemachine.domain.StateCoffeeMachine;
 import com.example.coffeemachine.dto.AddCoffeeMachineRequest;
-import com.example.coffeemachine.dto.getCoffeeMachineResponce;
+import com.example.coffeemachine.dto.GetCoffeeMachineListResponce;
+import com.example.coffeemachine.dto.GetCoffeeMachineResponce;
 import com.example.coffeemachine.servicies.CoffeeMachineService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -57,7 +58,7 @@ public class CoffeeMachineController {
             @ApiResponse(description = "OK", responseCode = "202"),
             @ApiResponse(description = "Internal server error", responseCode = "500")
     })
-    @PutMapping("/{coffeeMachineId}/change_status")
+    @PutMapping("/{coffeeMachineId}/change-status")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void turnStatus(
             @PathVariable("coffeeMachineId") long coffeeMachineId,
@@ -115,22 +116,40 @@ public class CoffeeMachineController {
                     description = "OK",
                     responseCode = "200",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = getCoffeeMachineResponce.class))),
+                            schema = @Schema(implementation = GetCoffeeMachineResponce.class))),
             @ApiResponse(description = "Internal server error", responseCode = "500")
     })
     @GetMapping("/{coffeeMachineId}")
     @ResponseStatus(HttpStatus.OK)
-    public getCoffeeMachineResponce getCoffeeMachine(@PathVariable("coffeeMachineId") long coffeeMachineId) {
+    public GetCoffeeMachineResponce getCoffeeMachine(@PathVariable("coffeeMachineId") long coffeeMachineId) {
         CoffeeMachine coffeeMachine = coffeeMachineService
                 .findById(coffeeMachineId)
                 .orElseThrow(() -> new RuntimeException("coffee machine not found"));
-        return new getCoffeeMachineResponce(
+        return new GetCoffeeMachineResponce(
                 coffeeMachine.getId(),
                 coffeeMachine.getState(),
                 coffeeMachine.getModel()
         );
     }
 
+    @Operation(
+            summary = "get all coffee machine",
+            description = "get all coffee machine"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    description = "OK",
+                    responseCode = "200",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GetCoffeeMachineListResponce.class))),
+            @ApiResponse(description = "Internal server error", responseCode = "500")
+    })
+    @GetMapping("/get-all")
+    @ResponseStatus(HttpStatus.OK)
+    public GetCoffeeMachineListResponce getAll() {
+        List<CoffeeMachine> allCoffeeMachines = coffeeMachineService.getAllCoffeeMachines();
+        return new GetCoffeeMachineListResponce(allCoffeeMachines);
+    }
 
     @Operation(
             summary = "turn off all coffee machine",
@@ -140,7 +159,7 @@ public class CoffeeMachineController {
             @ApiResponse(description = "OK", responseCode = "202"),
             @ApiResponse(description = "Internal server error", responseCode = "500")
     })
-    @PutMapping("/turned_off_all")
+    @PutMapping("/turned-off-all")
     @ResponseStatus(HttpStatus.OK)
     public void turnedOffAll() {
         List<CoffeeMachine> allCoffeeMachines = coffeeMachineService.getAllCoffeeMachines();

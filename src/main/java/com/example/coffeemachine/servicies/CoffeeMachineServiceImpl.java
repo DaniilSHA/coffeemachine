@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class CoffeeMachineServiceImpl implements CoffeeMachineService {
 
     private CoffeeMachineRepository coffeeMachineRepository;
@@ -19,7 +20,6 @@ public class CoffeeMachineServiceImpl implements CoffeeMachineService {
         this.coffeeMachineRepository = coffeeMachineRepository;
     }
 
-    @Transactional
     @Override
     public void saveOrUpdateCoffeeMachine(CoffeeMachine coffeeMachine) {
         coffeeMachineRepository.saveAndFlush(coffeeMachine);

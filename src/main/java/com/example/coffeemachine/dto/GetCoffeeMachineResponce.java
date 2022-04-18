@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-public class getCoffeeMachineResponce {
+public class GetCoffeeMachineResponce {
 
     private Long id;
     private StateCoffeeMachine stateCoffeeMachine;

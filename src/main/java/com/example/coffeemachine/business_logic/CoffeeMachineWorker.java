@@ -20,8 +20,9 @@ public class CoffeeMachineWorker extends Thread {
             try {
                 doWork();
             } catch (InterruptedException e) {
-                log.error("COFFEE MACHINE BROKEN");
+                log.error(Thread.currentThread().getName() + " -> coffee machine №" + coffeeMachineId + " is broken");
                 CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.BROKEN);
+                return;
             }
         }
     }
