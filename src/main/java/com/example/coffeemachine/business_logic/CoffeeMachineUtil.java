@@ -20,7 +20,7 @@ public class CoffeeMachineUtil {
         return coffeeMachineService.findById(coffeeMachineId).orElseThrow(()-> new RuntimeException("coffee machine don't found"));
     }
 
-    public static void setStatusCoffeeMachine (long coffeeMachineId, StateCoffeeMachine state) {
+    public synchronized static void setStatusCoffeeMachine (long coffeeMachineId, StateCoffeeMachine state) {
         CoffeeMachine coffeeMachineById = findById(coffeeMachineId);
         coffeeMachineById.setState(state);
         coffeeMachineService.saveOrUpdateCoffeeMachine(coffeeMachineById);

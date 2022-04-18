@@ -67,7 +67,6 @@ public class CoffeeMachineController {
                     "MAKES_LATTE",
                     "MAKES_CAPPUCCINO",
                     "MAKES_AMERICANO",
-                    "MADE_COFFEE",
                     "WAITING"
             }, defaultValue = "TURNED_OFF")
             @RequestParam(name = "status") String status) {
@@ -124,7 +123,6 @@ public class CoffeeMachineController {
             case "MAKES_LATTE" : return StateCoffeeMachine.MAKES_LATTE;
             case "MAKES_CAPPUCCINO" : return StateCoffeeMachine.MAKES_CAPPUCCINO;
             case "MAKES_AMERICANO" : return StateCoffeeMachine.MAKES_AMERICANO;
-            case "MADE_COFFEE" : return StateCoffeeMachine.MADE_COFFEE;
             case "WAITING" : return StateCoffeeMachine.WAITING;
             default: throw new RuntimeException("Invalid input param");
         }

@@ -8,6 +8,5 @@ public enum StateCoffeeMachine {
     MAKES_LATTE,
     MAKES_CAPPUCCINO,
     MAKES_AMERICANO,
-    MADE_COFFEE,
     WAITING
 }
