@@ -1,6 +1,7 @@
 package com.example.coffeemachine.controllers;
 
 import com.example.coffeemachine.business_logic.CoffeeMachineRealLogicEmulator;
+import com.example.coffeemachine.business_logic.CoffeeMachineUtil;
 import com.example.coffeemachine.domain.CoffeeMachine;
 import com.example.coffeemachine.domain.StateCoffeeMachine;
 import com.example.coffeemachine.dto.AddCoffeeMachineRequest;
@@ -72,11 +73,14 @@ public class CoffeeMachineController {
             @RequestParam(name = "status") String status) {
         StateCoffeeMachine state = validateStateParam(status);
         switch (state) {
-            case TURNED_ON: coffeeMachineRealLogicEmulator.turnOn(coffeeMachineId);
-            case MAKES_AMERICANO: coffeeMachineRealLogicEmulator.setStatusCoffeeMachine(StateCoffeeMachine.MAKES_AMERICANO);
-            case MAKES_CAPPUCCINO: coffeeMachineRealLogicEmulator.setStatusCoffeeMachine(StateCoffeeMachine.MAKES_CAPPUCCINO);
-            case MAKES_LATTE: coffeeMachineRealLogicEmulator.setStatusCoffeeMachine(StateCoffeeMachine.MAKES_LATTE);
-            case TURNED_OFF: coffeeMachineRealLogicEmulator.turnOff();
+            case TURNED_ON: {
+                coffeeMachineRealLogicEmulator.turnOn(coffeeMachineId);
+                CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.TURNED_ON);
+            } break;
+            case MAKES_AMERICANO: CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.MAKES_AMERICANO); break;
+            case MAKES_CAPPUCCINO: CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.MAKES_CAPPUCCINO); break;
+            case MAKES_LATTE: CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.MAKES_LATTE); break;
+            case TURNED_OFF: CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.TURNED_OFF); break;
         }
     }
 
