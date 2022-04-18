@@ -16,11 +16,11 @@ public class CoffeeMachineUtil {
         CoffeeMachineUtil.coffeeMachineService = coffeeMachineService;
     }
 
-    private static CoffeeMachine findById (long coffeeMachineId) {
-        return coffeeMachineService.findById(coffeeMachineId).orElseThrow(()-> new RuntimeException("coffee machine don't found"));
+    private static CoffeeMachine findById(long coffeeMachineId) {
+        return coffeeMachineService.findById(coffeeMachineId).orElseThrow(() -> new RuntimeException("coffee machine don't found"));
     }
 
-    public synchronized static void setStatusCoffeeMachine (long coffeeMachineId, StateCoffeeMachine state) {
+    public synchronized static void setStatusCoffeeMachine(long coffeeMachineId, StateCoffeeMachine state) {
         CoffeeMachine coffeeMachineById = findById(coffeeMachineId);
         coffeeMachineById.setState(state);
         coffeeMachineService.saveOrUpdateCoffeeMachine(coffeeMachineById);

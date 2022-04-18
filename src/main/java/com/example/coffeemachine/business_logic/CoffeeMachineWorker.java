@@ -15,6 +15,7 @@ public class CoffeeMachineWorker extends Thread {
     @Override
     public void run() {
         log.info(Thread.currentThread().getName() + " -> start work with coffee machine №" + coffeeMachineId);
+        CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.TURNED_ON);
         while (!isInterrupted()) {
             try {
                 doWork();

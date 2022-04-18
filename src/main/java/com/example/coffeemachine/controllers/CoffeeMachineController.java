@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/coffee_machine")
 public class CoffeeMachineController {
@@ -62,24 +64,45 @@ public class CoffeeMachineController {
             @Schema(allowableValues = {
                     "TURNED_ON",
                     "TURNED_OFF",
-                    "BROKEN",
-                    "REPAIR",
                     "MAKES_LATTE",
                     "MAKES_CAPPUCCINO",
                     "MAKES_AMERICANO",
-                    "WAITING"
             }, defaultValue = "TURNED_OFF")
             @RequestParam(name = "status") String status) {
         StateCoffeeMachine state = validateStateParam(status);
+
         switch (state) {
             case TURNED_ON: {
+                if (isCoffeeMachineAlreadyTurnedOn(coffeeMachineId))
+                    throw new RuntimeException("coffee machine already turned on");
                 coffeeMachineRealLogicEmulator.turnOn(coffeeMachineId);
                 CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.TURNED_ON);
-            } break;
-            case MAKES_AMERICANO: CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.MAKES_AMERICANO); break;
-            case MAKES_CAPPUCCINO: CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.MAKES_CAPPUCCINO); break;
-            case MAKES_LATTE: CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.MAKES_LATTE); break;
-            case TURNED_OFF: CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.TURNED_OFF); break;
+            }
+            break;
+            case MAKES_AMERICANO:
+                if (!isCoffeeMachineAlreadyTurnedOn(coffeeMachineId))
+                    throw new RuntimeException("coffee machine is turned off");
+                if (isCoffeeMachineAlreadyMakingCoffee(coffeeMachineId))
+                    throw new RuntimeException("coffee machine is busy");
+                CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.MAKES_AMERICANO);
+                break;
+            case MAKES_CAPPUCCINO:
+                if (!isCoffeeMachineAlreadyTurnedOn(coffeeMachineId))
+                    throw new RuntimeException("coffee machine is turned off");
+                if (isCoffeeMachineAlreadyMakingCoffee(coffeeMachineId))
+                    throw new RuntimeException("coffee machine is busy");
+                CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.MAKES_CAPPUCCINO);
+                break;
+            case MAKES_LATTE:
+                if (!isCoffeeMachineAlreadyTurnedOn(coffeeMachineId))
+                    throw new RuntimeException("coffee machine is turned off");
+                if (isCoffeeMachineAlreadyMakingCoffee(coffeeMachineId))
+                    throw new RuntimeException("coffee machine is busy");
+                CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.MAKES_LATTE);
+                break;
+            case TURNED_OFF:
+                CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachineId, StateCoffeeMachine.TURNED_OFF);
+                break;
         }
     }
 
@@ -92,7 +115,7 @@ public class CoffeeMachineController {
                     description = "OK",
                     responseCode = "200",
                     content = @Content(mediaType = "application/json",
-                                        schema = @Schema(implementation = getCoffeeMachineResponce.class))),
+                            schema = @Schema(implementation = getCoffeeMachineResponce.class))),
             @ApiResponse(description = "Internal server error", responseCode = "500")
     })
     @GetMapping("/{coffeeMachineId}")
@@ -101,11 +124,29 @@ public class CoffeeMachineController {
         CoffeeMachine coffeeMachine = coffeeMachineService
                 .findById(coffeeMachineId)
                 .orElseThrow(() -> new RuntimeException("coffee machine not found"));
-        return new getCoffeeMachineResponce (
+        return new getCoffeeMachineResponce(
                 coffeeMachine.getId(),
                 coffeeMachine.getState(),
                 coffeeMachine.getModel()
         );
+    }
+
+
+    @Operation(
+            summary = "turn off all coffee machine",
+            description = "turn off all coffee machine"
+    )
+    @ApiResponses({
+            @ApiResponse(description = "OK", responseCode = "202"),
+            @ApiResponse(description = "Internal server error", responseCode = "500")
+    })
+    @PutMapping("/turned_off_all")
+    @ResponseStatus(HttpStatus.OK)
+    public void turnedOffAll() {
+        List<CoffeeMachine> allCoffeeMachines = coffeeMachineService.getAllCoffeeMachines();
+        allCoffeeMachines.forEach((coffeeMachine) -> {
+            CoffeeMachineUtil.setStatusCoffeeMachine(coffeeMachine.getId(), StateCoffeeMachine.TURNED_OFF);
+        });
     }
 
     @ExceptionHandler(Exception.class)
@@ -116,15 +157,40 @@ public class CoffeeMachineController {
 
     private StateCoffeeMachine validateStateParam(String status) {
         switch (status) {
-            case "TURNED_ON" : return StateCoffeeMachine.TURNED_ON;
-            case "TURNED_OFF" : return  StateCoffeeMachine.TURNED_OFF;
-            case "BROKEN" : return StateCoffeeMachine.BROKEN;
-            case "REPAIR" : return StateCoffeeMachine.REPAIR;
-            case "MAKES_LATTE" : return StateCoffeeMachine.MAKES_LATTE;
-            case "MAKES_CAPPUCCINO" : return StateCoffeeMachine.MAKES_CAPPUCCINO;
-            case "MAKES_AMERICANO" : return StateCoffeeMachine.MAKES_AMERICANO;
-            case "WAITING" : return StateCoffeeMachine.WAITING;
-            default: throw new RuntimeException("Invalid input param");
+            case "TURNED_ON":
+                return StateCoffeeMachine.TURNED_ON;
+            case "TURNED_OFF":
+                return StateCoffeeMachine.TURNED_OFF;
+            case "MAKES_LATTE":
+                return StateCoffeeMachine.MAKES_LATTE;
+            case "MAKES_CAPPUCCINO":
+                return StateCoffeeMachine.MAKES_CAPPUCCINO;
+            case "MAKES_AMERICANO":
+                return StateCoffeeMachine.MAKES_AMERICANO;
+            default:
+                throw new RuntimeException("Invalid input param");
         }
+    }
+
+    private boolean isCoffeeMachineAlreadyMakingCoffee(long coffeeMachineId) {
+        switch (CoffeeMachineUtil.getCurrentStatus(coffeeMachineId)) {
+            case MAKES_AMERICANO:
+            case MAKES_CAPPUCCINO:
+            case MAKES_LATTE:
+                return true;
+        }
+        return false;
+    }
+
+    private boolean isCoffeeMachineAlreadyTurnedOn(long coffeeMachineId) {
+        switch (CoffeeMachineUtil.getCurrentStatus(coffeeMachineId)) {
+            case MAKES_AMERICANO:
+            case MAKES_CAPPUCCINO:
+            case MAKES_LATTE:
+            case WAITING:
+            case TURNED_ON:
+                return true;
+        }
+        return false;
     }
 }
